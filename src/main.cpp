@@ -10,11 +10,15 @@
 #include "vex.h"
 #include "robot-config.h"
 #include <iostream>
+#include "controller.h"
+#include "usercontrol.h"
 using namespace vex;
 using namespace std;
 
 // A global instance of competition
+#ifdef COMPETITION
 competition Competition;
+#endif
 
 // define your global instances of motors and other devices here
 
@@ -62,62 +66,56 @@ void autonomous(void)
 /*  You must modify the code to add your own robot specific commands here.   */
 /*---------------------------------------------------------------------------*/
 
-void usercontrol(void)
-{
-  // User control code here, inside the loop
-  while (1)
-  {
+// void usercontrol(void)
+// {
+//   // User control code here, inside the loop
+//   while (1)
+//   {
 
-    // This is the main execution loop for the user control program.
-    // Each time through the loop your program should update motor + servo
-    // values based on feedback from the joysticks.
+//     // This is the main execution loop for the user control program.
+//     // Each time through the loop your program should update motor + servo
+//     // values based on feedback from the joysticks.
 
-    // ........................................................................
-    // Insert user code here. This is where you use the joystick values to
-    // update your motors, etc.
-    // ........................................................................
+//     // ........................................................................
+//     // Insert user code here. This is where you use the joystick values to
+//     // update your motors, etc.
+//     // ........................................................................
 
-    int A = Controller.ButtonA.pressing();
-    int B = Controller.ButtonB.pressing();
-    int Y = Controller.ButtonY.pressing();
-    int R1 = Controller.ButtonR1.pressing();
-    int L1 = Controller.ButtonL1.pressing();
-    int A1 = Controller.Axis1.position(vex::percentUnits::pct);
-    int A2 = Controller.Axis2.position(vex::percentUnits::pct);
-    int A3 = Controller.Axis3.position(vex::percentUnits::pct);
-    int A4 = Controller.Axis4.position(vex::percentUnits::pct);
-
-    if (A)
-    {
-      MotorFlywheel.spin(vex::directionType::fwd, 54, vex::velocityUnits::pct);
-    }
-    if (B)
-    {
-      MotorFlywheel.spin(vex::directionType::fwd, 65, vex::velocityUnits::pct);
-    }
-    if (Y)
-    {
-      MotorFlywheel.spin(vex::directionType::fwd, 0, vex::velocityUnits::pct);
-    }
-    if (R1)
-    {
-      MotorIntaker.spin(vex::directionType::fwd, 100, vex::velocityUnits::pct);
-    }
-    if(L1)
-    {
-      Piston_Trigger.set(true);
-      wait(200,msec);
-      Piston_Trigger.set(false);
-      wait(200,msec);
-    }
-    MotorChassisRF.spin(directionType::fwd, A3 - A4 - A1, percentUnits::pct);
-    MotorChassisLF.spin(directionType::fwd, -A3 - A4 - A1, percentUnits::pct);
-    MotorChassisLB.spin(directionType::fwd, -A3 + A4 - A1, percentUnits::pct);
-    MotorChassisRB.spin(directionType::fwd, A3 + A4 - A1, percentUnits::pct);
-    wait(20, msec); // Sleep the task for a short amount of time to
-                    // prevent wasted resources.
-  }
-}
+//     if (A)
+//     {
+//       // MotorFlywheel.spin(vex::directionType::fwd, 54, vex::velocityUnits::pct);
+//       setFlyWheelSpeed(54);
+//     }
+//     if (B)
+//     {
+//       setFlyWheelSpeed(65);
+//       // MotorFlywheel.spin(vex::directionType::fwd, 65, vex::velocityUnits::pct);
+//     }
+//     if (Y)
+//     {
+//       setFlyWheelSpeed(0);
+//       // MotorFlywheel.spin(vex::directionType::fwd, 0, vex::velocityUnits::pct);
+//     }
+//     if (R1)
+//     {
+//       setIntakerSpeed(100);
+//       // MotorIntaker.spin(vex::directionType::fwd, 100, vex::velocityUnits::pct);
+//     }
+//     if(L1)
+//     {
+//       Piston_Trigger.set(true);
+//       wait(200,msec);
+//       Piston_Trigger.set(false);
+//       wait(200,msec);
+//     }
+//     MotorChassisRF.spin(directionType::fwd, A3 - A4 - A1, percentUnits::pct);
+//     MotorChassisLF.spin(directionType::fwd, -A3 - A4 - A1, percentUnits::pct);
+//     MotorChassisLB.spin(directionType::fwd, -A3 + A4 - A1, percentUnits::pct);
+//     MotorChassisRB.spin(directionType::fwd, A3 + A4 - A1, percentUnits::pct);
+//     wait(20, msec); // Sleep the task for a short amount of time to
+//                     // prevent wasted resources.
+//   }
+// }
 
 //
 // Main will set up the competition functions and callbacks.
@@ -125,10 +123,13 @@ void usercontrol(void)
 int main()
 {
 
-  // Set up callbacks for autonomous and driver control periods.
+// Set up callbacks for autonomous and driver control periods.
+#ifdef COMPETITION
   Competition.autonomous(autonomous);
   Competition.drivercontrol(usercontrol);
-
+#endif
+  thread defineControllerThread(defineController);
+  Brain.Screen.print("Hello World");
   // Run the pre-autonomous function.
   pre_auton();
 
